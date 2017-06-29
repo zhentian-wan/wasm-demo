@@ -1,26 +1,32 @@
 <!doctype>
 <html>
-    <header>
-        <title>
-            WASM
-        </title>
-        <script>
-            fetch('./test.wasm')
+<header>
+    <title>
+        WASM
+    </title>
+    <script>
+
+        function fetchAndInstantiateWasm(url, imports) {
+            return fetch(url)
                 .then((res) => {
-                    if(res.ok){
+                    if (res.ok) {
                         return res.arrayBuffer();
                     }
                     throw new Error('Unable to fetch WASM')
                 })
-                .then((bytes)=> {
+                .then((bytes) => {
                     return WebAssembly.compile(bytes);
                 })
                 .then(module => {
-                    return WebAssembly.instantiate(module);
+                    return WebAssembly.instantiate(module, imports || {});
                 })
-                .then(instance => {
-                    window.wasmSqrt =instance.exports.sqrt;
-                })
-        </script>
-    </header>
+                .then(instance => instance.exports);
+        }
+
+        fetchAndInstantiateWasm('./program.wasm')
+            .then(m => {
+                window.getSqrt = m.getSqrt;
+            });
+    </script>
+</header>
 </html>
